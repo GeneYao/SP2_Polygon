@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <unordered_map>
 #include <boost/polygon/polygon.hpp>
 
 using namespace std;
@@ -10,16 +12,6 @@ using namespace boost::polygon::operators;
 typedef polygon_data<int> Polygon;
 typedef polygon_traits<Polygon>::point_type Point;
 typedef vector<Polygon> PolygonSet;
-
-class Merge
-{
-
-};
-
-class Clipper
-{
-
-};
 
 int main(int argc, char *argv[])
 {
@@ -34,10 +26,15 @@ int main(int argc, char *argv[])
     //     cout << "Please input : .//myPolygon [input_file*.txt] [output_file*.txt]" << endl;
     // }
 
-    /* ----- Read Input File ----- */
-    string input;    
-    int inputNum;
+    /* ----- Declare Variabes */
     vector<string> operation;
+    unordered_map<string, PolygonSet> opMap;
+
+    /* ----- Read Input File ----- */
+    string input;  
+    
+
+
 
     while (fin >> input) {
         /* ----- Store Operation Information ----- */
@@ -47,37 +44,44 @@ int main(int argc, char *argv[])
                 operation.push_back(input);
             }
         }
-        // else if (input.compare("END") == 0) {
-        //     fin >> input;
-        //     continue;
-        // }
+        
         /* ----- Store Opertion Information ----- */        
         else if (input.compare("DATA") == 0) {
+            PolygonSet polys;
+            string opNames;
             /* ----- input phrase "Merge" or "Clipper"*/
             fin >> input;
+
             /* ----- input operation name ----- */
             fin >> input;
-            cout << input << endl; 
-            // /* ----- Store Merge Polygon ----- */
-            // if (input.compare("MERGE")) {
-            //     fin >> input;
-            //     cout << input << endl; 
-                                          
-            // } 
-            // /* ----- Store Clipper Polygon ----- */
-            // else if (input.compare("CLIPPER")) {
-            //     fin >> input;
-            //     cout << input << endl;
-            // }
+            opNames = input;
+            cout << opNames << endl; 
+            
             /* ----- Read Polygon ----- */
-            for (; input.compare("END") != 0;fin >> input) {            
+            
+            for (; input.compare("END") != 0;fin >> input) {
                 if (input.compare("POLYGON") == 0) {
-                    fin >> input;
-                        for (; input.compare(";") != 0;fin >> input) {                
-                            cout << input << endl;;
+                    fin >> input; 
+                    int x, y;
+                    vector<Point> pts;
+                    Polygon poly;                                       
+                    for (int i = 0; input.compare(";") != 0; fin >> input, i++) {
+                        if (i % 2 == 0) {
+                            x = stoi(input);
                         }
+                        if (i % 2 == 1) {
+                            y = stoi(input);
+                            pts.push_back({x, y});
+                            cout << x << " " << y << endl;
+                        }                          
                     }
+                    set_points(poly, pts.begin(), pts.end());
+                    polys.push_back(poly);
+                }
+
+                //cout << polys.size() << endl;                
             }
+            opMap[opNames] = polys;
             /* ----- End ----- */
             fin >> input;     
         }
@@ -86,7 +90,9 @@ int main(int argc, char *argv[])
     cout << endl;
 
     for (int i = 0; i < operation.size(); i++) {
+        string temp;        
         cout << operation[i] << endl;
+        cout << opMap[operation[i]].size() << endl;
     }
     
     
