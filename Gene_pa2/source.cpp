@@ -21,28 +21,23 @@ int main(int argc, char *argv[])
     if (!fin) {
         cout << "# file reading error" << endl;
 		return 0;
-    }
-    // if (argc < 2) {
-    //     cout << "Please input : .//myPolygon [input_file*.txt] [output_file*.txt]" << endl;
-    // }
+    }    
 
     /* ----- Declare Variabes */
     vector<string> operation;
     unordered_map<string, PolygonSet> opMap;
-    PolygonSet result;
+    PolygonSet result, resultWithCorection;
 
     /* ----- Read Input File ----- */
-    string input;  
+    string input;
     
-
-
-
     while (fin >> input) {
         /* ----- Store Operation Information ----- */
         if (input.compare("OPERATION") == 0) {
             fin >> input;
-            for (; input.compare(";") != 0;fin >> input) {                
+            for (; input.compare(";") != 0;fin >> input) {                                 
                 operation.push_back(input);
+                cout << input << endl;
             }
         }
         
@@ -56,10 +51,9 @@ int main(int argc, char *argv[])
             /* ----- input operation name ----- */
             fin >> input;
             opNames = input;
-            cout << opNames << endl; 
+            // cout << opNames << endl; 
             
-            /* ----- Read Polygon ----- */
-            
+            /* ----- Read Polygon ----- */            
             for (; input.compare("END") != 0;fin >> input) {
                 if (input.compare("POLYGON") == 0) {
                     fin >> input; 
@@ -73,17 +67,15 @@ int main(int argc, char *argv[])
                         if (i % 2 == 1) {
                             y = stoi(input);
                             pts.push_back({x, y});
-                            cout << x << " " << y << endl;
                         }                          
                     }
                     set_points(poly, pts.begin(), pts.end());
                     polys.push_back(poly);
-                }
-
-                //cout << polys.size() << endl;                
+                }                              
             }
             opMap[opNames] = polys;
-            /* ----- End ----- */
+
+            /* ----- Read End ----- */
             fin >> input;     
         }
     }
@@ -98,11 +90,38 @@ int main(int argc, char *argv[])
         else if (key[0] == 'C') {
             result -= opMap[key];
         }    
-        cout << operation[i] << endl;
-        cout << opMap[operation[i]].size() << endl;
-        cout << area(result) << endl;
+        cout << key << endl;
+        //cout << opMap[key].size() << endl;        
     }
-    
+
+    cout << endl;
+
+    /* ----- Coordinate Correction ----- */
+    for (int i =  0; i < result.size(); i++) {
+        Polygon::iterator_type it;        
+        Polygon correction;
+        vector<Point> pts;
+        for (it = result[i].begin(); it != result[i].end(); it++) {
+            Polygon::iterator_type prev = it - 1;
+            Polygon::iterator_type next = it + 1;
+            bool isSameLine = prev->x() == next->x() || prev->y() == next->y();            
+            if (isSameLine) continue;
+            else pts.push_back({it->x(), it->y()});                            
+        }
+        set_points(correction, pts.begin(), pts.end());
+        resultWithCorection.push_back(correction);        
+    }
+
+    // for (int i =  0; i < resultWithCorection.size(); i++) {
+    //     Polygon::iterator_type it;
+    //     cout << resultWithCorection[i].size() << endl;       
+    //     for (it = resultWithCorection[i].begin(); it != resultWithCorection[i].end(); it++) {
+    //         cout << it->x() << " " << it->y() << endl;
+    //     }
+    // }
+
+    /* ----- Split ----- */
+
     
     /* ----- Write Output File ----- */
 
