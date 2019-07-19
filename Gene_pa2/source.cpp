@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     /* ----- Declare Variabes */
     vector<string> operation;
     unordered_map<string, PolygonSet> opMap;
+    PolygonSet result;
 
     /* ----- Read Input File ----- */
     string input;  
@@ -89,10 +90,17 @@ int main(int argc, char *argv[])
 
     cout << endl;
 
-    for (int i = 0; i < operation.size(); i++) {
-        string temp;        
+    for (int i = 0; i < operation.size(); i++) {         
+        string key = operation[i];
+        if (key[0] == 'M') {
+            result += opMap[key];
+        }  
+        else if (key[0] == 'C') {
+            result -= opMap[key];
+        }    
         cout << operation[i] << endl;
         cout << opMap[operation[i]].size() << endl;
+        cout << area(result) << endl;
     }
     
     
