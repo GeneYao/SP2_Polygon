@@ -9,9 +9,10 @@ using namespace std;
 using namespace boost::polygon;
 using namespace boost::polygon::operators;
 
-typedef polygon_data<int> Polygon;
+typedef polygon_90_data<int> Polygon;
 typedef polygon_traits<Polygon>::point_type Point;
-typedef vector<Polygon> PolygonSet;
+typedef polygon_90_set_data<int> PolygonSet;
+typedef rectangle_data<int> Rectangle;
 
 int main(int argc, char *argv[])
 {
@@ -26,7 +27,8 @@ int main(int argc, char *argv[])
     /* ----- Declare Variabes */
     vector<string> operation;
     unordered_map<string, PolygonSet> opMap;
-    PolygonSet result, resultWithCorection;
+    PolygonSet result;
+    vector <Rectangle> splitResult;
 
     /* ----- Read Input File ----- */
     string input;
@@ -36,12 +38,11 @@ int main(int argc, char *argv[])
         if (input.compare("OPERATION") == 0) {
             fin >> input;
             for (; input.compare(";") != 0;fin >> input) {                                 
-                operation.push_back(input);
-                cout << input << endl;
+                operation.push_back(input);                
             }
         }
         
-        /* ----- Store Opertion Information ----- */        
+        /* ----- Store Polygon Information ----- */        
         else if (input.compare("DATA") == 0) {
             PolygonSet polys;
             string opNames;
@@ -50,8 +51,7 @@ int main(int argc, char *argv[])
 
             /* ----- input operation name ----- */
             fin >> input;
-            opNames = input;
-            // cout << opNames << endl; 
+            opNames = input;            
             
             /* ----- Read Polygon ----- */            
             for (; input.compare("END") != 0;fin >> input) {
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
                         }                          
                     }
                     set_points(poly, pts.begin(), pts.end());
-                    polys.push_back(poly);
+                    polys.insert(poly);
                 }                              
             }
             opMap[opNames] = polys;
@@ -79,8 +79,7 @@ int main(int argc, char *argv[])
             fin >> input;     
         }
     }
-
-    cout << endl;
+    
 
     for (int i = 0; i < operation.size(); i++) {         
         string key = operation[i];
@@ -89,41 +88,21 @@ int main(int argc, char *argv[])
         }  
         else if (key[0] == 'C') {
             result -= opMap[key];
-        }    
-        cout << key << endl;
-        //cout << opMap[key].size() << endl;        
+        } 
+        else if (key[1] == 'H') {
+            result.get_rectangles(splitResult, HORIZONTAL);            
+        } 
+        else if (key[1] == 'V') {
+            result.get_rectangles(splitResult, VERTICAL);            
+        }         
     }
 
-    cout << endl;
-
-    /* ----- Coordinate Correction ----- */
-    for (int i =  0; i < result.size(); i++) {
-        Polygon::iterator_type it;        
-        Polygon correction;
-        vector<Point> pts;
-        for (it = result[i].begin(); it != result[i].end(); it++) {
-            Polygon::iterator_type prev = it - 1;
-            Polygon::iterator_type next = it + 1;
-            bool isSameLine = prev->x() == next->x() || prev->y() == next->y();            
-            if (isSameLine) continue;
-            else pts.push_back({it->x(), it->y()});                            
-        }
-        set_points(correction, pts.begin(), pts.end());
-        resultWithCorection.push_back(correction);        
-    }
-
-    // for (int i =  0; i < resultWithCorection.size(); i++) {
-    //     Polygon::iterator_type it;
-    //     cout << resultWithCorection[i].size() << endl;       
-    //     for (it = resultWithCorection[i].begin(); it != resultWithCorection[i].end(); it++) {
-    //         cout << it->x() << " " << it->y() << endl;
-    //     }
-    // }
-
-    /* ----- Split ----- */
-
-    
     /* ----- Write Output File ----- */
+    ofstream fout(argv[2]);
+    for (int i = 0; i < splitResult.size(); i++) {
+        fout << "RECT " << xl(splitResult[i]) << " " << yl(splitResult[i])
+        << " " << xh(splitResult[i]) << " " << yh(splitResult[i]) << " ;" << endl;
+    }
 
     return 0;
 }
